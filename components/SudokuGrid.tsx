@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Renders the 9×9 Sudoku grid. Givens read-only; empty cells editable.
- * Light blue = selected; red = mistake (wrong vs solution) or conflict.
+ * 9×9 Sudoku grid. Givens read-only; empty cells editable.
+ * Selected cell + full row/column/block highlight with animation.
  */
 
 import type { Board, CellValue, Position } from '@/algorithms';
@@ -14,6 +14,9 @@ interface SudokuGridProps {
   solution: Board | null;
   selectedCell: Position | null;
   conflictPositions: readonly Position[];
+  completedRows: ReadonlySet<number>;
+  completedCols: ReadonlySet<number>;
+  completedBlocks: ReadonlySet<number>;
   onSelectCell: (pos: Position) => void;
   onCellChange: (row: number, col: number, value: CellValue) => void;
 }
@@ -29,12 +32,30 @@ function isMistake(
   return v !== 0 && solution[row][col] !== v;
 }
 
+function sameBlock(r1: number, c1: number, r2: number, c2: number): boolean {
+  return (
+    Math.floor(r1 / BLOCK_SIZE) === Math.floor(r2 / BLOCK_SIZE) &&
+    Math.floor(c1 / BLOCK_SIZE) === Math.floor(c2 / BLOCK_SIZE)
+  );
+}
+
+function blockIndex(row: number, col: number): number {
+  return (
+    Math.floor(row / BLOCK_SIZE) * 3 + Math.floor(col / BLOCK_SIZE)
+  );
+}
+
+const CELL_SIZE = '2.75rem';
+
 export function SudokuGrid({
   board,
   givenMask,
   solution,
   selectedCell,
   conflictPositions,
+  completedRows,
+  completedCols,
+  completedBlocks,
   onSelectCell,
   onCellChange,
 }: SudokuGridProps) {
@@ -55,10 +76,11 @@ export function SudokuGrid({
 
   return (
     <div
-      className="inline-grid gap-0 border-2 border-zinc-800"
+      className="inline-grid gap-0 rounded-lg bg-white"
       style={{
-        gridTemplateColumns: `repeat(${GRID_SIZE}, 2.25rem)`,
-        gridTemplateRows: `repeat(${GRID_SIZE}, 2.25rem)`,
+        gridTemplateColumns: `repeat(${GRID_SIZE}, ${CELL_SIZE})`,
+        gridTemplateRows: `repeat(${GRID_SIZE}, ${CELL_SIZE})`,
+        boxShadow: 'var(--shadow)',
       }}
       role="grid"
       aria-label="Sudoku grid"
@@ -69,6 +91,25 @@ export function SudokuGrid({
           const isGiven = givenMask[row][col];
           const isSelected =
             selectedCell?.row === row && selectedCell?.col === col;
+          const isInSelectedRow = selectedCell ? selectedCell.row === row : false;
+          const isInSelectedCol = selectedCell ? selectedCell.col === col : false;
+          const isInSelectedBlock =
+            selectedCell !== null &&
+            sameBlock(row, col, selectedCell.row, selectedCell.col);
+          const selectedValue =
+            selectedCell !== null
+              ? board[selectedCell.row][selectedCell.col]
+              : 0;
+          const isSameDigit =
+            !isSelected &&
+            value !== 0 &&
+            selectedValue !== 0 &&
+            value === selectedValue;
+          const isRowComplete = completedRows.has(row);
+          const isColComplete = completedCols.has(col);
+          const isBlockComplete = completedBlocks.has(blockIndex(row, col));
+          const isComplete =
+            isRowComplete || isColComplete || isBlockComplete;
           const isConflict = conflictSet.has(`${row},${col}`);
           const wrongVsSolution = isMistake(board, solution, row, col);
           const isBlockEdgeRight =
@@ -77,24 +118,37 @@ export function SudokuGrid({
             (row + 1) % BLOCK_SIZE === 0 && row !== GRID_SIZE - 1;
 
           let cellBg = 'bg-white';
-          if (isSelected) cellBg = 'bg-blue-100';
-          else if (wrongVsSolution) cellBg = 'bg-red-100';
-          else if (isConflict) cellBg = 'bg-red-50';
-          else if (isGiven) cellBg = 'bg-white';
+          if (isSelected) {
+            cellBg = 'sudoku-cell-selected';
+          } else if (wrongVsSolution) {
+            cellBg = 'bg-red-50';
+          } else if (isConflict) {
+            cellBg = 'bg-red-50/60';
+          } else if (isComplete) {
+            cellBg = 'sudoku-cell-complete';
+          } else if (isSameDigit) {
+            cellBg = 'sudoku-cell-same-digit';
+          } else if (isInSelectedRow || isInSelectedCol || isInSelectedBlock) {
+            cellBg = 'sudoku-cell-highlight';
+          } else if (isGiven) {
+            cellBg = 'bg-slate-50/80';
+          }
 
-          let textColor = 'text-zinc-900';
-          if (wrongVsSolution) textColor = 'text-red-600';
+          let textColor = 'text-slate-800';
+          if (wrongVsSolution) textColor = 'text-red-600 font-semibold';
+          else if (isGiven) textColor = 'text-slate-900 font-semibold';
 
           return (
             <div
               key={`${row}-${col}`}
               className={`
-                flex items-center justify-center border border-zinc-300
-                text-center text-lg tabular-nums font-medium
+                flex items-center justify-center border border-slate-200
+                text-center text-xl tabular-nums transition-colors duration-150
                 ${cellBg} ${textColor}
-                ${isSelected ? 'ring-2 ring-inset ring-blue-400' : ''}
-                ${isBlockEdgeRight ? 'border-r-2 border-r-zinc-600' : ''}
-                ${isBlockEdgeBottom ? 'border-b-2 border-b-zinc-600' : ''}
+                ${isSelected ? 'ring-2 ring-indigo-500 ring-inset' : ''}
+                ${isBlockEdgeRight ? 'border-r-2 border-r-slate-400' : ''}
+                ${isBlockEdgeBottom ? 'border-b-2 border-b-slate-400' : ''}
+                cursor-pointer select-none
               `}
               onClick={() => onSelectCell({ row, col })}
               onKeyDown={(e) => handleKeyDown(e, row, col)}
