@@ -18,6 +18,18 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
 }
 
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --surface: #1e293b;
+  --border: #334155;
+  --muted: #94a3b8;
+  --primary-muted: #312e81;
+  --error-muted: #450a0a;
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.15);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -57,6 +69,19 @@ button:focus-visible,
 /* Same digit as selected cell – related positions */
 .sudoku-cell-same-digit {
   background-color: rgb(254 243 199 / 0.9);
+}
+
+.dark .sudoku-cell-highlight {
+  background-color: rgb(49 46 129 / 0.4);
+}
+.dark .sudoku-cell-selected {
+  background-color: rgb(67 56 202 / 0.5);
+}
+.dark .sudoku-cell-complete {
+  background-color: rgb(6 95 70 / 0.4);
+}
+.dark .sudoku-cell-same-digit {
+  background-color: rgb(120 53 15 / 0.4);
 }
 @keyframes sudoku-highlight-in {
   from {

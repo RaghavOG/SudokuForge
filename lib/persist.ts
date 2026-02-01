@@ -19,10 +19,31 @@ export interface PersistedState {
   savedAt: number;
 }
 
-export function saveGame(state: Omit<PersistedState, 'savedAt'>): void {
+/** Input for saveGame accepts readonly arrays (e.g. Board from algorithms). */
+export interface SaveGameState {
+  puzzle: readonly (readonly number[])[];
+  solution: readonly (readonly number[])[];
+  givenMask: readonly (readonly boolean[])[];
+  board: readonly (readonly number[])[];
+  difficulty: string;
+  timerSeconds: number;
+  timerPaused: boolean;
+  mistakes: number;
+  hintsLeft: number;
+  selectedCell: { row: number; col: number } | null;
+}
+
+export function saveGame(state: SaveGameState): void {
   if (typeof window === 'undefined') return;
   try {
-    const data: PersistedState = { ...state, savedAt: Date.now() };
+    const data: PersistedState = {
+      ...state,
+      puzzle: state.puzzle.map((r) => [...r]),
+      solution: state.solution.map((r) => [...r]),
+      givenMask: state.givenMask.map((r) => [...r]),
+      board: state.board.map((r) => [...r]),
+      savedAt: Date.now(),
+    };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch {
     // ignore quota / private mode
@@ -55,6 +76,31 @@ export function clearGame(): void {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+const BEST_TIME_KEY_PREFIX = 'sudokuforge-best-';
+
+export function getBestTime(difficulty: string): number | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(BEST_TIME_KEY_PREFIX + difficulty);
+    if (raw == null) return null;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setBestTime(difficulty: string, seconds: number): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = getBestTime(difficulty);
+    if (current != null && seconds >= current) return;
+    window.localStorage.setItem(BEST_TIME_KEY_PREFIX + difficulty, String(seconds));
   } catch {
     // ignore
   }

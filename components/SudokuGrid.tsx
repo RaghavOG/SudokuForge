@@ -76,7 +76,7 @@ export function SudokuGrid({
 
   return (
     <div
-      className="inline-grid gap-0 rounded-lg bg-white"
+      className="inline-grid gap-0 rounded-lg bg-white dark:bg-slate-800"
       style={{
         gridTemplateColumns: `repeat(${GRID_SIZE}, ${CELL_SIZE})`,
         gridTemplateRows: `repeat(${GRID_SIZE}, ${CELL_SIZE})`,
@@ -121,33 +121,33 @@ export function SudokuGrid({
           if (isSelected) {
             cellBg = 'sudoku-cell-selected';
           } else if (wrongVsSolution) {
-            cellBg = 'bg-red-50';
+            cellBg = 'bg-red-50 dark:bg-red-900/30';
           } else if (isConflict) {
-            cellBg = 'bg-red-50/60';
+            cellBg = 'bg-red-50/60 dark:bg-red-900/20';
           } else if (isComplete) {
             cellBg = 'sudoku-cell-complete';
           } else if (isSameDigit) {
             cellBg = 'sudoku-cell-same-digit';
           } else if (isInSelectedRow || isInSelectedCol || isInSelectedBlock) {
             cellBg = 'sudoku-cell-highlight';
-          } else if (isGiven) {
-            cellBg = 'bg-slate-50/80';
+          }           else if (isGiven) {
+            cellBg = 'bg-slate-50/80 dark:bg-slate-700/50';
           }
 
-          let textColor = 'text-slate-800';
-          if (wrongVsSolution) textColor = 'text-red-600 font-semibold';
-          else if (isGiven) textColor = 'text-slate-900 font-semibold';
+          let textColor = 'text-slate-800 dark:text-slate-200';
+          if (wrongVsSolution) textColor = 'text-red-600 dark:text-red-400 font-semibold';
+          else if (isGiven) textColor = 'text-slate-900 dark:text-slate-100 font-semibold';
 
           return (
             <div
               key={`${row}-${col}`}
               className={`
-                flex items-center justify-center border border-slate-200
+                flex items-center justify-center border border-slate-200 dark:border-slate-600
                 text-center text-xl tabular-nums transition-colors duration-150
                 ${cellBg} ${textColor}
-                ${isSelected ? 'ring-2 ring-indigo-500 ring-inset' : ''}
-                ${isBlockEdgeRight ? 'border-r-2 border-r-slate-400' : ''}
-                ${isBlockEdgeBottom ? 'border-b-2 border-b-slate-400' : ''}
+                ${isSelected ? 'ring-2 ring-indigo-500 ring-inset dark:ring-indigo-400' : ''}
+                ${isBlockEdgeRight ? 'border-r-2 border-r-slate-400 dark:border-r-slate-500' : ''}
+                ${isBlockEdgeBottom ? 'border-b-2 border-b-slate-400 dark:border-b-slate-500' : ''}
                 cursor-pointer select-none
               `}
               onClick={() => onSelectCell({ row, col })}
