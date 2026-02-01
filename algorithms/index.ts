@@ -29,3 +29,5 @@ export {
   getConflicts,
   isValidPartialBoard,
 } from './validation';
+
+export { generatePuzzle, type GeneratedPuzzle } from './generator';
